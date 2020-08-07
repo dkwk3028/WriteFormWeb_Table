@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0'>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type='module' src='js/init.js'></script>
+    <script type='module' src='js/upload.js'></script>
+    <script type='module' src='js/login.js'></script>
+    <link rel='stylesheet' href='css/table.css'>
+    <link rel='stylesheet' href='css/modal.css'>
+</head>
+
+<body>
+    <div id='header' style='margin-bottom:20px;'>
+        <img class='img_btn' src='image/list-icon.png' style='width:32px;height:32px;' onclick='showModalLeft();'>
+        <div style='flex:1;display:flex; justify-content: center; align-items:center'>
+            <p id='note_form_title' style='margin:0px;font-weight:bold;font-size:25px'></p>
+        </div>
+    </div>
+    <div id='app' class='main_wrapper'>
+        
+        <transition name='fade' mode="out-in"
+        >
+        <div class='table_wrapper' v-bind:key='page_show' v-if='b_page_show'>
+            <table class='data_table'>
+                <thead>
+                    <tr>
+                        <td v-bind:colspan='Math.floor((DATA_COUNT+1)/2)' class='td_head heads'>Location: </td>
+                        <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='location' v-on:click='showModalHead'>{{first_datas[0].data}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td v-bind:colspan='Math.floor((DATA_COUNT+1)/2)' class='td_head heads'>Writer: </td>
+                        <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='writer' v-on:click='showModalHead'>{{first_datas[1].data}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td v-for="head in [{'head':'Data', 'col':1},...header_keys]" v-bind:colspan='head.col'>
+                            {{head.head}}
+                        </td>
+
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr class='datas' v-for="(row, row_num) in td_datas" v-on:click='showModal'>
+                        <th>{{row_num+1}}</th>
+                        <td v-for="(col, col_num) in row">
+                            {{col}}
+                        </td>
+                    </tr>
+
+                    <tr class='datas' v-on:click='showModal'>
+                        <th>Avg</th>
+                        <td v-for='avg in avgs'>
+                            {{avg.toFixed(3)}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        </transition>
+
+        <transition name='fade'>
+            <div v-if='b_modal_show' class='modal'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span v-if='!b_modal_avg' class='close not_close'>{{row_num+1}}번째 데이터</span>
+                        <span v-if='b_modal_avg' class='close not_close'>Avg</span>
+                        <span class='close' v-on:click='closeModal' style='float:right;'>&times;</span>
+                    </div>
+                    <div v-if='!b_modal_avg' v-for='(col, col_num) in td_datas[row_num]'>
+                        <p class='modal_cols'>{{headers[col_num]}} </p>
+                        <input type='number' v-bind:id="'modal_input'+col_num" class='modal_cols' v-bind:value='col'>
+                    </div>
+                    <div v-if='b_modal_avg' v-for='(col, col_num) in avgs'>
+                        <p class='modal_cols'>{{headers[col_num]}} </p>
+                        <input type='number' class='modal_cols' v-bind:value='col'>
+                    </div>
+
+                    <div class='save_box'>
+                        <button v-if='!b_modal_avg' v-on:click='saveModal'>Edit</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <transition name='fade'>
+            <div v-if='b_modal_show_head' class='modal'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span class='close not_close'>{{first_datas[row_num].head}}</span>
+                        <span class='close' v-on:click='closeModalHead' style='float:right;'>&times;</span>
+                    </div>
+                    <div v-for='(head, n) in first_datas[row_num].heads'>
+                        <p class='modal_cols'>{{head}} </p>
+                        <input v-bind:id="'modal_head_input'+n" class='modal_cols'
+                            v-bind:value="first_datas[row_num].data[n]">
+                    </div>
+
+                    <div class='save_box'>
+                        <button v-on:click='saveModalHead'>Edit</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <transition name='slide-up'>
+            <div v-if='b_modal_show_left' class='modal left'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span class='close not_close'>메뉴</span>
+                        <span class='close' v-on:click='closeModalLeft' style='float:right;'>&times;</span>
+                    </div>
+
+                    <div>
+                        <div class='menu_items' v-on:click='showModalModify'>
+                            양식 만들기
+                        </div>
+                        <div class='menu_items' v-on:click='showModalLoad'>
+                            양식 불러오기
+                        </div>
+                        <div class='menu_items' v-on:click='clickedModify'>
+                            양식 수정하기
+                        </div>
+                        <div class='menu_items'>
+                            지난 기록보기
+                        </div>
+                        <div class='menu_items'>
+                            엑셀 변환하기
+                        </div>
+                    </div>
+                    <div class='save_box'>
+
+                    </div>
+
+                </div>
+            </div>
+        </transition>
+
+        <transition name='fade_fast'>
+            <div v-if='b_modal_show_modify' class='modal'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span class='close not_close'>양식 만들기</span>
+                        <span class='close' v-on:click='closeModalModify' style='float:right;'>&times;</span>
+                    </div>
+                    <div style='margin-bottom : 20px;'>
+                        <p class='modal_cols'>문서 이름</p>
+                        <input id='doc_title' class='modal_cols' placeholder='이름은 중복될 수 없습니다.'>
+                    </div>
+                    <div style='margin-bottom : 20px;'>
+                        <p class='modal_cols'>행 갯수</p>
+                        <input id='doc_row' class='modal_cols' placeholder='ex)16'>
+                    </div>
+                    <div style='display:flex; justify-content:space-around;'>
+                        <div id='create_form_div1' style='display:flex;flex-direction:column;justify-content: center;align-items: center;border-right:3px solid black;padding:15px'>
+                            <p class='modal_cols menu_input' style='text-align:center;'>항목</p>
+                            <div style='margin:10px 0px 30px 0px'>
+                                <input class='modal_cols menu_input menu1' placeholder='ex)Length'>
+
+                            </div>
+                        </div>
+                        <div id='create_form_div2' style='display:flex;flex-direction:column;justify-content: center;align-items: center;border-right:3px solid black;padding:15px'>
+                            <p class='modal_cols menu_input' style='width:130px;text-align:center;'>열 갯수</p>
+                            <div style='margin:10px 0px 30px 0px'>
+                                <input class='modal_cols menu_input menu2' placeholder='ex)3'>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div style='display:flex;justify-content: center;align-items: center;margin-top:25px; margin-bottom:30px'>
+                        <button onclick='addMenu()'>+</button>
+                    </div>
+                    <div style='display:flex;justify-content: center;align-items: center;margin-top:25px; margin-bottom:30px'>
+                        <button onclick='removeMenu()'>-</button>
+                    </div>
+                    
+                    <div class='save_box' style='display:flex;justify-content: center;align-items: center;margin-top:25px;'>
+                        <button id='create_note_btn' onclick='createNoteForm()'>Create</button>
+                    </div>
+                </div>
+
+            </div>
+        </transition>
+
+        <transition name='slide-up'>
+            <div v-if='b_modal_show_load' class='modal left'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span class='close not_close'>양식</span>
+                        <span class='close' v-on:click='closeModalLoad' style='float:right;'>&times;</span>
+                    </div>
+
+                    <div>
+                        <div class='menu_items modal_cols modify_note' v-on:click='loadNoteForm(note_form)' v-for='note_form in note_form_loads'>
+                            <p>
+                                {{note_form.title}}
+                            </p>
+                            <p>
+                                Row : {{note_form.row}}, Col : {{note_form.col}}
+                            </p>
+                            <p>
+                                Columns : {{note_form.keys.map((ele)=>{return ele.head}).join(', ')}}
+                            </p>
+                        </div>
+                    </div>
+                    <div class='save_box'>
+
+                    </div>
+
+                </div>
+            </div>
+        </transition>
+
+        <div class='upload_btn_box'>
+            <div v-if='b_modify'>
+                <button id='add_row_btn' v-on:click='addRowBtnClicked'>+</button>
+            </div>
+            <div v-if='b_modify'>
+                <button id='remove_row_btn' v-on:click='removeRowBtnClicked'>-</button>
+            </div>
+            <div v-if='b_modify'>
+                <button id='save_form_btn' v-on:click='saveFormBtnClicked'>Save</button>
+            </div>
+            <div v-if='b_modify'>
+                <button id='cancel_form_btn' v-on:click='cancelBtnClicked'>Cancel</button>
+            </div>
+            <div v-if='!b_modify'>
+                <button id='upload_btn' onclick='uploadClicked()'>Upload</button>
+            </div>
+        </div>
+
+
+    </div>
+    <div style='height:200px;'>
+
+    </div>
+</body>
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-auth.js"></script>
+
+<script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyD8eDSVjUvo7o4JEOxbEjHA1Cd4djmMaj4",
+        authDomain: "writeformweb.firebaseapp.com",
+        databaseURL: "https://writeformweb.firebaseio.com",
+        projectId: "writeformweb",
+        storageBucket: "writeformweb.appspot.com",
+        messagingSenderId: "1052442767776",
+        appId: "1:1052442767776:web:3956e720fe4acbe665f4c5",
+        measurementId: "G-GZ2ZBHYLZN"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+    // login ui
+</script>
+</html>

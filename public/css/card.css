@@ -1,0 +1,48 @@
+.card{
+    width : 90%;
+    height : 150px;
+    background-color: #ffffff;
+    border-radius : 5px;
+    border : 0px;
+    box-shadow : 0 0 5px 4px #aaaaaa;
+}
+#writer_p{
+    margin : 0px;
+    float : right;
+}
+span{
+    font-weight: 550;
+}
+#date{
+    font-size : 13px;
+    color : #cecece;
+}
+#location {
+    color: #aaaaaa;
+    font-style : 나눔고딕;
+    font-weight : bold;
+    margin-top : 10px;
+    margin-bottom : 10px;
+}
+#writer{
+    color : #cfc24d;
+    font-weight: bold;
+}
+]
+
+.contents{
+    padding : 10px;
+    display:flex;
+    justify-content : space-around;
+    flex-direction: column;
+}
+
+
+
+#description_wrapper{
+    display:flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+

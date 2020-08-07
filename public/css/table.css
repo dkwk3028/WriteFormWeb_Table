@@ -1,0 +1,111 @@
+body{
+    background-color : #ece9c7;
+}
+.main_wrapper{
+    display :flex;
+    justify-content: center;
+    flex-direction: column;
+}
+.table_wrapper{
+    display :flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius : 5px;
+    overflow-x:auto;
+}
+
+.table_wrapper::-webkit-scrollbar {
+
+    width: 10px;
+}
+.table_wrapper::-webkit-scrollbar-thumb {
+    background-color: #2f3542;
+    border-radius:10px;
+}
+.table_wrapper::-webkit-scrollbar-track {
+    background-color: grey;
+    border-radius:10px;
+}
+.data_table{
+    width : 100%;
+    border-collapse : collapse;
+}
+
+.upload_btn_box{
+    margin-top : 30px;
+}
+.upload_btn_box div{
+    display : flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom : 15px;
+}
+th{
+    min-width : 20px;
+    max-width : 40px;
+}
+td{
+    text-align: center;
+    font-size : 15px;
+    min-width : 40px;
+    max-width : 60px;
+    height : 30px;
+}
+#header{
+    background-color : #e7708d;
+    box-shadow : 0 -10px 0px 20px #e7708d;
+    display : flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.datas:active{
+    background-color: #448ff146;
+    color : #777777;
+}
+.img_btn:active{
+    background-color: #448ff146;
+    border-radius : 10px;
+}
+.data_table tbody tr td{
+    border-left : 1px solid #ccc;
+    border-bottom : 1px solid #ccc;
+}
+.data_table tbody tr:last-child td{
+    border-bottom : 1px solid #ccc;
+}
+
+
+.data_table thead td{
+    border-bottom : 1px solid #ccc;
+    padding : 3px;
+}
+.data_table thead td{
+    border-top : 1px solid #ccc;
+}
+.data_table thead tr:last-child td, .td_head{
+    border-right : 1px solid #ccc;
+
+    font-weight: bold;
+    font-style : 맑은고딕;
+    color : #000000;
+}
+
+
+
+.data_table thead tr:last-child td:last-child{
+    border-right : 0px;
+}
+
+.data_table tbody tr th{
+    border-bottom : 1px solid #ccc;
+}
+
+input:not(active){
+    background-color : transparent;
+    border-radius : 5px;
+}
+
+input:active{
+    border : 1px solid black;
+    border-radius : 5px;
+}
