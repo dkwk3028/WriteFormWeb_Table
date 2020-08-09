@@ -5,22 +5,25 @@ import { formatDate } from './date.js'
 
 window.uploadClicked = uploadClicked
 
-function uploadClicked(){
+function uploadClicked() {
     let btn = document.getElementById('upload_btn')
-    if (btn.disabled == true){
+    if (btn.disabled == true) {
         return
     }
     btn.disabled = true
     _uploadClicked()
     btn.disabled = false;
 }
+
 function _uploadClicked() {
-    if (check_datas_empty()){
+    if (check_datas_empty()) {
         return;
     }
-    login();
-    let user = firebase.auth().currentUser;
 
+    let user = firebase.auth().currentUser;
+    if (user == null) {
+        alert('로그인이 되어있지 않습니다')
+    }
     let upload_data = {};
     for (let head of app_vue.first_datas) {
         let key = head.head;
@@ -48,11 +51,13 @@ function _uploadClicked() {
     upload_data['time'] = formatted_time
 
     console.log(upload_data)
-    db.pushData('notes/' + title,upload_data)
+    for (let i = 0; i < 1; ++i) {
+        db.pushData('notes/' + title + '/' + user.uid, upload_data)
+    }
     app_vue.clearAll();
 
     app_vue.toggleShow();
-    
+
 }
 
 function check_datas_empty() {
@@ -78,83 +83,85 @@ function check_datas_empty() {
     return false;
 }
 
-function removeSpace(str){
+function removeSpace(str) {
     let blank_pattern = /^\s+|\s+$/g;
     return str.replace(blank_pattern, '')
 }
 
-function hasSpecial(str){
+function hasSpecial(str) {
     let specials = /^.*[\.#\[\]\?\s]+.*/g;
-    if (str.match(specials)){
+    if (str.match(specials)) {
         return true
-    }else{
+    } else {
         return false
     }
 }
-function isEmpty(str){
-    if (removeSpace(str) == ''){
+
+function isEmpty(str) {
+    if (removeSpace(str) == '') {
         return true;
-    }else{
+    } else {
         return false;
     }
 }
 
-async function createNoteForm(){
+async function createNoteForm() {
     let btn = document.getElementById('create_note_btn')
-    if (btn.disabled == true){
+    if (btn.disabled == true) {
         return;
     }
     btn.disabled = true
     await _createNoteForm()
     btn.disabled = false;
 }
-async function _createNoteForm(){ 
+async function _createNoteForm() {
     let menus1 = document.getElementsByClassName('menu1')
     let menus2 = document.getElementsByClassName('menu2')
     let title = document.getElementById('doc_title').value
     let rows = document.getElementById('doc_row').value
-    
-    if (isEmpty(title)){
+
+    if (isEmpty(title)) {
         alert('문서항목이 비어있습니다')
         return
     }
-    if (hasSpecial(title)){
+    if (hasSpecial(title)) {
         alert('문서에 특수문자 혹은 공백이 들어가있습니다')
         return
     }
-    if (isEmpty(rows)){
+    if (isEmpty(rows)) {
         alert('행갯수 항목이 비어있습니다')
         return
     }
-    if (isNaN(rows)){
+    if (isNaN(rows)) {
         alert('행 갯수가 숫자가 아닙니다')
         return
     }
     rows = parseInt(rows)
-    
+
     let result = {}
     let datas = []
     let cols = 0;
-    for (let i=0; i<menus1.length; ++i){
+    for (let i = 0; i < menus1.length; ++i) {
         let vals = [removeSpace(menus1[i].value),
-                    removeSpace(menus2[i].value)]
-        if (vals.includes('')){
+            removeSpace(menus2[i].value)
+        ]
+        if (vals.includes('')) {
             alert('빈칸이 존재합니다')
             return
         }
 
-        if (isNaN(parseInt(vals[1]))){
+        if (isNaN(parseInt(vals[1]))) {
             alert('열갯수 항목에 문자열이 존재합니다')
             return
         }
         let rvals = [menus1[i].value, parseInt(menus2[i].value)]
-        let data = {'head' : rvals[0], 'col' : rvals[1]}
+        let data = { 'head': rvals[0], 'col': rvals[1] }
         cols += rvals[1]
         datas.push(data)
 
     }
     let b_duplicated = await db.checkNoteDuplicated(title)
-    if (b_duplicated){
+    if (b_duplicated) {
         alert('문서 이름이 중복되었습니다')
         return
     }
@@ -165,8 +172,8 @@ async function _createNoteForm(){
     result['data'] = datas
     console.log(result)
     db.pushNoteForm(result)
-    
-    
+
+
 }
 
 window.createNoteForm = createNoteForm;

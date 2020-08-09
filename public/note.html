@@ -1,39 +1,39 @@
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0'>
-        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-        <link rel='stylesheet' href='css/table.css'>
-        <link rel='stylesheet' href='css/card.css'>
-    </head>
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0'>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link rel='stylesheet' href='css/table.css'>
+    <link rel='stylesheet' href='css/card.css'>
+</head>
 
-    <body>
-        <div id='header' style='margin-bottom:20px;'>
-            <img class='img_btn' src='image/home_icon.svg' style='width:32px;height:32px;'>
-        </div>
-        <div id='app' class='main_wrapper'>
-            <div class='card'>
-                <div class='contents'>
-                    <div style='display:flex; justify-content: center;align-items: center;'>
-                        <p>Click me to show data</p>
-                    </div>
-                    <div id='description_wrapper'>
-                        <div id='description'>
-                            <div>
+<body>
+    <div id='header' style='margin-bottom:20px;'>
+        <img class='img_btn' src='image/home_icon.svg' style='width:32px;height:32px;'>
+    </div>
+    <div id='app' class='main_wrapper'>
+        <div class='card'>
+            <div class='contents'>
+                <div style='display:flex; justify-content: center;align-items: center;'>
+                    <p>Click me to show data</p>
+                </div>
+                <div id='description_wrapper'>
+                    <div id='description'>
+                        <div>
                             <span id='date'>2018-02-13 00:00:00</span>
-                            <span><span>at </span><span id='location'>(120, 200)</span></span>
-                            </div>
-                            <p id='writer_p'><span>by </span><span id='writer'>강현우</span></p>
+                            <span><span>at </span><span id='location_span'>(120, 200)</span></span>
                         </div>
+                        <p id='writer_p'><span>by </span><span id='writer'>강현우</span></p>
                     </div>
                 </div>
             </div>
         </div>
-        
-    </body>
+    </div>
 
-    <!-- The core Firebase JS SDK is always required and must be listed first -->
+</body>
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
 
 <!-- TODO: Add SDKs for Firebase products that you want to use
@@ -59,4 +59,5 @@
     firebase.analytics();
     // login ui
 </script>
+
 </html>

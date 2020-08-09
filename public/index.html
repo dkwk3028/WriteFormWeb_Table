@@ -19,47 +19,46 @@
         </div>
     </div>
     <div id='app' class='main_wrapper'>
-        
-        <transition name='fade' mode="out-in"
-        >
-        <div class='table_wrapper' v-bind:key='page_show' v-if='b_page_show'>
-            <table class='data_table'>
-                <thead>
-                    <tr>
-                        <td v-bind:colspan='Math.floor((DATA_COUNT+1)/2)' class='td_head heads'>Location: </td>
-                        <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='location' v-on:click='showModalHead'>{{first_datas[0].data}}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td v-bind:colspan='Math.floor((DATA_COUNT+1)/2)' class='td_head heads'>Writer: </td>
-                        <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='writer' v-on:click='showModalHead'>{{first_datas[1].data}}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td v-for="head in [{'head':'Data', 'col':1},...header_keys]" v-bind:colspan='head.col'>
-                            {{head.head}}
-                        </td>
 
-                    </tr>
-                </thead>
+        <transition name='fade' mode="out-in">
+            <div class='table_wrapper' v-bind:key='page_show' v-if='b_page_show'>
+                <table class='data_table'>
+                    <thead>
+                        <tr>
+                            <td v-bind:colspan='Math.floor((DATA_COUNT+1)/2)' class='td_head heads'>Location: </td>
+                            <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='location' v-on:click='showModalHead'>{{first_datas[0].data}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td v-bind:colspan='Math.floor((DATA_COUNT+1)/2)' class='td_head heads'>Writer: </td>
+                            <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='writer' v-on:click='showModalHead'>{{first_datas[1].data}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td v-for="head in [{'head':'Data', 'col':1},...header_keys]" v-bind:colspan='head.col'>
+                                {{head.head}}
+                            </td>
 
-                <tbody>
-                    <tr class='datas' v-for="(row, row_num) in td_datas" v-on:click='showModal'>
-                        <th>{{row_num+1}}</th>
-                        <td v-for="(col, col_num) in row">
-                            {{col}}
-                        </td>
-                    </tr>
+                        </tr>
+                    </thead>
 
-                    <tr class='datas' v-on:click='showModal'>
-                        <th>Avg</th>
-                        <td v-for='avg in avgs'>
-                            {{avg.toFixed(3)}}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                    <tbody>
+                        <tr class='datas' v-for="(row, row_num) in td_datas" v-on:click='showModal'>
+                            <th>{{row_num+1}}</th>
+                            <td v-for="(col, col_num) in row">
+                                {{col}}
+                            </td>
+                        </tr>
+
+                        <tr class='datas' v-on:click='showModal'>
+                            <th>Avg</th>
+                            <td v-for='avg in avgs'>
+                                {{avg.toFixed(3)}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </transition>
 
         <transition name='fade'>
@@ -95,8 +94,7 @@
                     </div>
                     <div v-for='(head, n) in first_datas[row_num].heads'>
                         <p class='modal_cols'>{{head}} </p>
-                        <input v-bind:id="'modal_head_input'+n" class='modal_cols'
-                            v-bind:value="first_datas[row_num].data[n]">
+                        <input v-bind:id="'modal_head_input'+n" class='modal_cols' v-bind:value="first_datas[row_num].data[n]">
                     </div>
 
                     <div class='save_box'>
@@ -124,11 +122,11 @@
                         <div class='menu_items' v-on:click='clickedModify'>
                             양식 수정하기
                         </div>
-                        <div class='menu_items'>
+                        <div class='menu_items' v-on:click='showModalPrev'>
                             지난 기록보기
                         </div>
-                        <div class='menu_items'>
-                            엑셀 변환하기
+                        <div class='menu_items' v-on:click='showModalCSV'>
+                            엑셀 다운로드
                         </div>
                     </div>
                     <div class='save_box'>
@@ -176,7 +174,7 @@
                     <div style='display:flex;justify-content: center;align-items: center;margin-top:25px; margin-bottom:30px'>
                         <button onclick='removeMenu()'>-</button>
                     </div>
-                    
+
                     <div class='save_box' style='display:flex;justify-content: center;align-items: center;margin-top:25px;'>
                         <button id='create_note_btn' onclick='createNoteForm()'>Create</button>
                     </div>
@@ -186,15 +184,28 @@
         </transition>
 
         <transition name='slide-up'>
-            <div v-if='b_modal_show_load' class='modal left'>
+            <div v-if='b_modal_show_load || b_modal_show_csv' class='modal left'>
                 <div class='modal-content'>
                     <div class='close_div'>
-                        <span class='close not_close'>양식</span>
+                        <span v-if='b_modal_show_load' class='close not_close'>양식</span>
+                        <span v-if='b_modal_show_csv' class='close not_close'>CSV 다운로드</span>
                         <span class='close' v-on:click='closeModalLoad' style='float:right;'>&times;</span>
                     </div>
 
                     <div>
-                        <div class='menu_items modal_cols modify_note' v-on:click='loadNoteForm(note_form)' v-for='note_form in note_form_loads'>
+                        <div v-if='b_modal_show_load' class='menu_items modal_cols modify_note' v-on:click='loadNoteForm(note_form)' v-for='note_form in note_form_loads'>
+                            <p>
+                                {{note_form.title}}
+                            </p>
+                            <p>
+                                Row : {{note_form.row}}, Col : {{note_form.col}}
+                            </p>
+                            <p>
+                                Columns : {{note_form.keys.map((ele)=>{return ele.head}).join(', ')}}
+                            </p>
+                        </div>
+
+                        <div v-if='b_modal_show_csv' class='menu_items modal_cols modify_note' v-on:click='downloadCSV(note_form)' v-for='note_form in note_form_loads'>
                             <p>
                                 {{note_form.title}}
                             </p>
@@ -214,21 +225,48 @@
             </div>
         </transition>
 
+        <transition name='slide-up'>
+            <div v-if='b_modal_show_prev' class='modal left'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span class='close not_close'>기록</span>
+                        <span class='close' v-on:click='closeModalPrev' style='float:right'>&times;</span>
+                    </div>
+
+                    <div class='menu_items modal_cols prev_card' v-for='prev_data in prev_datas'>
+                        <div><span class='close' v-on:click='removeCard(prev_data)' style='float:right;padding-right:15px'>&times;</span></div>
+                        <div v-on:click="showPrevData(prev_data)">
+                            <span id='date'>{{prev_data.time}}</span>
+                            <span><span>at </span><span id='location_span'>{{prev_data.Location}}</span></span>
+                        </div>
+                        <p id='writer_p'><span>by </span><span id='writer'>{{prev_data.Writer}}</span></p>
+                    </div>
+                    <div class='save_box loadmore'>
+                        <button id='loadmore_btn' v-on:click='loadMore'><p style='transform: rotate(90deg);-webkit-transform: rotate(90deg);'>>></p></button>
+                    </div>
+
+                </div>
+            </div>
+        </transition>
+
         <div class='upload_btn_box'>
-            <div v-if='b_modify'>
+            <div v-if='b_modify && !b_prev_data_show'>
                 <button id='add_row_btn' v-on:click='addRowBtnClicked'>+</button>
             </div>
-            <div v-if='b_modify'>
+            <div v-if='b_modify && !b_prev_data_show'>
                 <button id='remove_row_btn' v-on:click='removeRowBtnClicked'>-</button>
             </div>
-            <div v-if='b_modify'>
+            <div v-if='b_modify && !b_prev_data_show'>
                 <button id='save_form_btn' v-on:click='saveFormBtnClicked'>Save</button>
             </div>
-            <div v-if='b_modify'>
+            <div v-if='b_modify && !b_prev_data_show'>
                 <button id='cancel_form_btn' v-on:click='cancelBtnClicked'>Cancel</button>
             </div>
             <div v-if='!b_modify'>
                 <button id='upload_btn' onclick='uploadClicked()'>Upload</button>
+            </div>
+            <div v-if='b_prev_data_show'>
+                <button id='upload_btn' v-on:click='cancelPrevData'>Cancel</button>
             </div>
         </div>
 
@@ -265,4 +303,5 @@
     firebase.analytics();
     // login ui
 </script>
+
 </html>

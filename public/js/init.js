@@ -1,37 +1,46 @@
 import { db } from "./firebase.js";
+import { login } from "./login.js";
 
+const EMPTY_DATA = 0
 export var app_vue;
-window.onload = function () {
+
+window.onload = function() {
+
     app_vue = new Vue({
         el: '#app',
         data: {
-            DATA_COUNT : 6,
-            ROW_COUNT : 16,
-            prev_row : 16,
-            page_show : false,
-            b_page_show : false,
+            DATA_COUNT: 6,
+            ROW_COUNT: 16,
+            prev_row: 16,
+            page_show: false,
+            b_page_show: false,
             b_modal_show: false,
             b_modal_show_head: false,
-            b_modal_show_left : false,
-            b_modal_show_modify : false,
-            b_modal_avg : false,
-            b_modify : false,
-            b_modify_block : false,
-            b_modal_show_load : false,
+            b_modal_show_left: false,
+            b_modal_show_modify: false,
+            b_modal_avg: false,
+            b_modify: false,
+            b_modify_block: false,
+            b_modal_show_load: false,
+            b_modal_show_prev: false,
+            b_prev_data_show: false,
+            b_modal_show_csv: false,
+            b_possible_load_more: true,
+            temp_td_datas: {},
+            prev_datas: [],
             td_datas: [],
             note_form_loads: [],
             header_keys: [
-                {'head' : 'Length',  'col':1},
-                {'head' : 'Count_No.', 'col':1},
-                {'head' : 'SPAD', 'col' : 3},
-                {'head' : 'Panicle No.','col' : 1},
-                {'head' : 'Note', 'col' : 1}
+                { 'head': 'Length', 'col': 1 },
+                { 'head': 'Count_No.', 'col': 1 },
+                { 'head': 'SPAD', 'col': 3 },
+                { 'head': 'Panicle No.', 'col': 1 },
+                { 'head': 'Note', 'col': 1 }
             ],
-            colspans:[
+            colspans: [
 
             ],
-            headers: [
-            ],
+            headers: [],
             first_datas: [
                 { 'head': 'Location', 'heads': ['위치'], 'data': [''] },
                 { 'head': 'Writer', 'heads': ['Writer'], 'data': [''] }
@@ -40,9 +49,9 @@ window.onload = function () {
             row_num: 0
         },
         methods: {
-            showModal: function (event) {
-                
-                if (this.b_modify){
+            showModal: function(event) {
+
+                if (this.b_modify) {
                     return
                 }
                 this.b_modal_avg = false
@@ -54,61 +63,123 @@ window.onload = function () {
 
                 let tds = tr.childNodes;
                 console.log(tds[0].innerText)
-                if (isNaN(tds[0].innerText)){
+                if (isNaN(tds[0].innerText)) {
                     this.b_modal_avg = true;
-                }else{
-                    let row_num = parseInt(tds[0].innerText)-1;
+                } else {
+                    let row_num = parseInt(tds[0].innerText) - 1;
                     this.row_num = row_num;
                 }
                 this.b_modal_show = true;
-                
+
 
             },
-            showModalLeft: function(event){
-                if (this.b_modify){
+            showModalLeft: function(event) {
+                if (this.b_modify) {
                     return
                 }
                 this.b_modal_show_left = true;
             },
-            showModalLoad: function(event){
+            showModalLoad: function(event) {
                 this.closeModalLeft()
-                
-                this.b_modal_show_load = true
+
+                if (!this.b_modal_show_csv)
+                    this.b_modal_show_load = true
                 this.note_form_loads = []
                 db.readNoteForms()
             },
-            showModalHead: function (event) {
-                if (this.b_modify){
+            showModalPrev: function(event) {
+                db.page_key = ''
+                this.prev_datas = []
+                db.readNoteLists()
+
+
+                this.b_modal_show_prev = true;
+
+            },
+            loadMore: function(e) {
+                if (e && e.target)
+                    document.activeElement.blur()
+                if (!this.b_possible_load_more) {
+                    return
+                }
+                this.b_possible_load_more = false;
+
+                db.readNoteLists()
+            },
+            removeCard: function(prev_data) {
+                db.removeNode(`notes/${db.current_form}/${prev_data.uid}/${prev_data.push_key}`)
+                db.page_key = ''
+                this.prev_datas = []
+                db.readNoteLists()
+            },
+            showPrevData: function(prev_data) {
+                this.closeModalLeft()
+                this.closeModalPrev()
+
+                this.temp_td_datas = {}
+                this.temp_td_datas['Location'] = this.first_datas[0].data[0]
+                this.temp_td_datas['Writer'] = this.first_datas[1].data[0]
+
+                this.temp_td_datas['td_datas'] = [...this.td_datas]
+                this.temp_td_datas['ROW_COUNT'] = this.ROW_COUNT;
+                this.temp_td_datas['Avg'] = [...this.avgs]
+
+                this.first_datas[0].data[0] = prev_data.Location
+                this.first_datas[1].data[0] = prev_data.Writer
+                this.td_datas = prev_data.datas
+                this.avgs = prev_data.avg
+                this.ROW_COUNT = prev_data.datas.length
+
+                this.b_modify = true
+                this.b_prev_data_show = true
+                this.b_possible_load_more = true
+            },
+            cancelPrevData: function() {
+                this.first_datas[0].data[0] = this.temp_td_datas['Location']
+                this.first_datas[1].data[0] = this.temp_td_datas['Writer']
+                this.td_datas = [...this.temp_td_datas['td_datas']]
+                this.avgs = [...this.temp_td_datas['Avg']]
+                this.ROW_COUNT = this.temp_td_datas['ROW_COUNT']
+                this.b_modify = false
+                this.b_prev_data_show = false
+                this.toggleShow()
+            },
+            showModalHead: function(event) {
+                if (this.b_modify) {
                     return
                 }
                 let td = event.target;
-                if (td.id == 'location'){
+                if (td.id == 'location') {
                     this.row_num = 0;
-                }else if(td.id == 'writer'){
+                } else if (td.id == 'writer') {
                     this.row_num = 1;
                 }
                 this.b_modal_show_head = true;
             },
-            showModalModify: function (event){
+            showModalModify: function(event) {
                 this.b_modal_show_left = false;
                 this.b_modal_show_modify = true;
             },
-            closeModalLoad: function(){
-                this.b_modal_show_load = false;
+            closeModalPrev: function() {
+                this.b_modal_show_prev = false;
             },
-            closeModalModify: function (){
+            closeModalLoad: function() {
+                this.b_modal_show_load = false;
+                this.b_modal_show_csv = false;
+            },
+            closeModalModify: function() {
                 this.b_modal_show_modify = false;
             },
-            closeModal: function () {
+            closeModal: function() {
                 this.b_modal_show = false;
             },
-            closeModalHead: function () {
+            closeModalHead: function() {
                 this.b_modal_show_head = false;
             },
-            closeModalLeft: function(){
+            closeModalLeft: function() {
                 this.b_modal_show_left = false;
             },
-            saveModal: function () {
+            saveModal: function() {
                 for (let i = 0; i < this.DATA_COUNT; ++i) {
                     let input_tag = document.getElementById(`modal_input${i}`)
                     let val = parseFloat(input_tag.value);
@@ -122,7 +193,7 @@ window.onload = function () {
                 this.calAvgs();
                 this.closeModal();
             },
-            saveModalHead: function () {
+            saveModalHead: function() {
                 for (let i = 0; i < this.first_datas[this.row_num].data.length; ++i) {
                     let input_tag = document.getElementById(`modal_head_input${i}`)
                     if (input_tag.value == '') {
@@ -134,7 +205,7 @@ window.onload = function () {
 
                 this.closeModalHead();
             },
-            calAvgs: function () {
+            calAvgs: function() {
                 let sums = Array(this.DATA_COUNT).fill(0);
                 for (let i = 0; i < this.ROW_COUNT; ++i) {
                     let row = this.td_datas[i];
@@ -148,78 +219,78 @@ window.onload = function () {
 
 
             },
-            clearAll: function(){
+            clearAll: function() {
                 this.td_datas = []
                 this.avgs = []
                 for (let i = 0; i < this.ROW_COUNT; ++i) {
-                    this.td_datas.push(Array(this.DATA_COUNT).fill(''))
+                    this.td_datas.push(Array(this.DATA_COUNT).fill(EMPTY_DATA))
                 }
-            
+
                 for (let i = 0; i < this.DATA_COUNT; ++i) {
                     this.avgs.push(0);
                 }
-            
-                for (let i=0; i<this.first_datas.length; ++i){
-                    for (let j=0; j<this.first_datas[i].data.length; ++j){
+
+                for (let i = 0; i < this.first_datas.length; ++i) {
+                    for (let j = 0; j < this.first_datas[i].data.length; ++j) {
                         this.first_datas[i].data[j] = ''
                     }
                 }
             },
-            toggleShow: function(){
+            toggleShow: function() {
                 this.page_show = !this.page_show;
             },
 
-            init: function(){
+            init: function() {
                 this.td_datas = []
                 this.avgs = []
                 this.headers = []
                 for (let i = 0; i < this.ROW_COUNT; ++i) {
-                    this.td_datas.push(Array(this.DATA_COUNT).fill(''))
+                    this.td_datas.push(Array(this.DATA_COUNT).fill(EMPTY_DATA))
                 }
-            
+
                 for (let i = 0; i < this.DATA_COUNT; ++i) {
                     this.avgs.push(0);
                 }
-                for (let i=0; i<this.first_datas.length; ++i){
-                    for (let j=0; j<this.first_datas[i].data.length; ++j){
+                for (let i = 0; i < this.first_datas.length; ++i) {
+                    for (let j = 0; j < this.first_datas[i].data.length; ++j) {
                         this.first_datas[i].data[j] = ''
                     }
                 }
-                for (let head of this.header_keys){
-                    if (head.col != 1){
-                        for (let i=0; i<head.col;++i){
+                for (let head of this.header_keys) {
+                    if (head.col != 1) {
+                        for (let i = 0; i < head.col; ++i) {
                             this.headers.push(`${head.head}${i+1}`)
                         }
-                    }else{
+                    } else {
                         this.headers.push(`${head.head}`)
                     }
                 }
             },
-            clickedModify: function(event){
+            clickedModify: function(event) {
                 this.prev_row = this.ROW_COUNT
                 this.closeModalLeft()
                 this.b_modify = true;
                 this.b_modify_block = false;
             },
-            addRowBtnClicked: function(event){
-                if (this.b_modify_block){
+            addRowBtnClicked: function(event) {
+                if (this.b_modify_block) {
                     return
                 }
                 this.ROW_COUNT += 1
                 this.clearAll()
             },
-            removeRowBtnClicked: function(event){
-                if (this.b_modify_block){
+            removeRowBtnClicked: function(event) {
+                if (this.b_modify_block) {
                     return
                 }
-                if (this.ROW_COUNT <= 1){
+                if (this.ROW_COUNT <= 1) {
                     return
                 }
                 this.ROW_COUNT -= 1
                 this.clearAll()
             },
-            saveFormBtnClicked: function(event){
-                if (this.b_modify_block){
+            saveFormBtnClicked: function(event) {
+                if (this.b_modify_block) {
                     return
                 }
                 this.b_modify_block = true
@@ -228,52 +299,60 @@ window.onload = function () {
                 this.toggleShow()
                 this.init()
                 this.b_page_show = true;
-                
+
 
                 this.b_modify_block = false;
                 this.b_modify = false;
             },
-            cancelBtnClicked: function(event){
-                if (this.b_modify_block){
+            cancelBtnClicked: function(event) {
+                if (this.b_modify_block) {
                     return
                 }
                 this.ROW_COUNT = this.prev_row;
-                
+
                 this.clearAll()
                 this.toggleShow()
                 this.b_modify = false;
             },
-            loadNoteForm: function(note_form){
+            showModalCSV: function() {
+                this.b_modal_show_csv = true
+                this.showModalLoad()
+            },
+            loadNoteForm: function(note_form) {
+                console.log(note_form)
                 db.current_form = note_form.title
                 db.note_form = note_form
-                this.header_keys = db.note_form.keys.filter(function(el){return el!=null;})
-            
+                this.header_keys = db.note_form.keys.filter(function(el) { return el != null; })
+
                 this.ROW_COUNT = note_form.row
                 this.DATA_COUNT = note_form.col
                 this.init()
                 db.setCurrentForm(db.current_form)
-                
+
                 this.closeModalLoad()
                 this.toggleShow()
+            },
+            downloadCSV: function(note_form) {
+                db.downloadCSV(note_form)
             }
 
         }
     });
 
-    
+
     //init td_datas
 
 
-    firebase.auth().getRedirectResult().then(function (result) {
+    firebase.auth().getRedirectResult().then(function(result) {
         if (result.credential) {
             // This gives you a Google Access Token. You can use it to access the Google API.
             var token = result.credential.accessToken;
             console.log('로그인 성공')
-            // ...
+                // ...
         }
         // The signed-in user info.
         var user = result.user;
-    }).catch(function (error) {
+    }).catch(function(error) {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
@@ -284,14 +363,15 @@ window.onload = function () {
         // ...
     });
 
+
 }
 
 
-function showModalLeft(){
+function showModalLeft() {
     app_vue.showModalLeft();
 }
 
-function addMenu(){
+function addMenu() {
     let form = document.getElementById('create_form_div1');
     let form2 = document.getElementById('create_form_div2');
     let template_div = document.createElement('div')
@@ -304,17 +384,17 @@ function addMenu(){
     form2.appendChild(template_div2)
 }
 
-function removeMenu(){
+function removeMenu() {
     let form = document.getElementById('create_form_div1');
     let form2 = document.getElementById('create_form_div2');
 
     let child = form.lastChild
-    if (child.tagName != 'DIV'){
+    if (child.tagName != 'DIV') {
         return
     }
     child.remove()
     let child2 = form2.lastChild
-    if (child2.tagName != 'DIV'){
+    if (child2.tagName != 'DIV') {
         return
     }
     child2.remove()
