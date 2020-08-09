@@ -12,7 +12,7 @@ class Database {
     constructor() {
         document.addEventListener("click", preventHandler, true);
         this.database = firebase.database();
-        this.current_form = 'default'
+        this.current_form = 'Default'
         this.current_form_key = '??'
         this.note_form = {}
         this.temp_notes = []
@@ -82,14 +82,14 @@ class Database {
             })
             if (Object.keys(this.note_form).length == 0) {
                 this.pushDefaultNoteForm()
-                await this.readNoteFormsByTitle('default')
+                await this.readNoteFormsByTitle('Default')
             }
         }
     }
     async readCurrentForm() {
         const snapshot = await this.database.ref('note_form/current_form').once('value')
         if (snapshot.val() == null) {
-            this.setCurrentForm('default')
+            this.setCurrentForm('Default')
             this.readCurrentForm()
             return
         }
@@ -97,7 +97,7 @@ class Database {
         console.log(this.current_form)
     }
 
-    setCurrentForm(title = 'default') {
+    setCurrentForm(title = 'Default') {
         this.setData('note_form/current_form', { 'title': title })
         let el = document.getElementById('note_form_title')
         el.innerText = title
@@ -132,7 +132,7 @@ class Database {
         app_vue.b_page_show = true;
     }
     pushDefaultNoteForm() {
-        this.setData('note_form/list/' + this.current_form, {
+        this.setData('note_form/list/' + 'Default', {
             'row': 16,
             'col': 7,
             'keys': [
