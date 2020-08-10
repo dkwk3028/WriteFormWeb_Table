@@ -70,7 +70,8 @@
                         <span class='close' v-on:click='closeModal' style='float:right;'>&times;</span>
                     </div>
                     <div v-if='!b_modal_avg' v-for='(col, col_num) in td_datas[row_num]'>
-                        <p class='modal_cols'>{{headers[col_num]}} </p>
+                        <p class='modal_cols' >{{headers[col_num]}} 
+                            <input type='checkbox' class='apply_col_box' v-bind:id="'apply_col_box'+col_num"><span style='color:#ff0000'>모든열 적용</span></p>
                         <input type='number' v-bind:id="'modal_input'+col_num" class='modal_cols' v-bind:value='col'>
                     </div>
                     <div v-if='b_modal_avg' v-for='(col, col_num) in avgs'>
@@ -153,18 +154,20 @@
                         <input id='doc_row' class='modal_cols' placeholder='ex)16'>
                     </div>
                     <div style='display:flex; justify-content:space-around;'>
-                        <div id='create_form_div1' style='display:flex;flex-direction:column;justify-content: center;align-items: center;border-right:3px solid black;padding:15px'>
-                            <p class='modal_cols menu_input' style='text-align:center;'>항목</p>
-                            <div style='margin:10px 0px 30px 0px'>
-                                <input class='modal_cols menu_input menu1' placeholder='ex)Length'>
-
+                        <div id='create_form_div1' style='display:flex;flex-direction:column;justify-content: center;align-items: center;padding:15px'>
+                            <div style='display:flex; flex-direction: column; justify-content: center; align-items: center;'>
+                                <p class='modal_cols menu_input' style='text-align:center;'>항목</p>
+                                <div style='margin:10px 0px 30px 0px'>
+                                    <input class='modal_cols menu_input menu1' placeholder='ex)Length'>
+                                </div>
                             </div>
                         </div>
-                        <div id='create_form_div2' style='display:flex;flex-direction:column;justify-content: center;align-items: center;border-right:3px solid black;padding:15px'>
-                            <p class='modal_cols menu_input' style='width:130px;text-align:center;'>열 갯수</p>
+                        <div id='create_form_div2' style='display:flex;flex-direction:column;justify-content: center;align-items: center;padding:15px'>
+                            <div style='display:flex; flex-direction: column; justify-content: center; align-items: center;'>
+                            <p class='modal_cols menu_input' style='text-align:center;'>열 갯수</p>
                             <div style='margin:10px 0px 30px 0px'>
                                 <input class='modal_cols menu_input menu2' placeholder='ex)3'>
-
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -246,6 +249,24 @@
                     </div>
 
                 </div>
+            </div>
+        </transition>
+
+        <transition name='slide-up' @after-enter="downloadToCSV">
+            <div v-if='b_modal_show_download_btn' class='modal left'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span class='close not_close'>다운로드</span>
+                        <span class='close' v-on:click='closeModalDownloadBtn' style='float:right'>&times;</span>
+                    </div>
+
+                    <div id='save_box_download' class='save_box'>
+
+                    </div>
+
+                </div>
+
+
             </div>
         </transition>
 

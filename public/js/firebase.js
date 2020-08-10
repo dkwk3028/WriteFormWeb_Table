@@ -274,14 +274,39 @@ class ToCSV {
         let download_link;
 
         let csv = this.changeDataToCSV(data, note_form)
-        csv_File = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" })
-
+        try {
+            csv_File = new Blob(["\ufeff" + csv], { type: "data:text/csv;charset=utf-8;" })
+        } catch (e) {
+                // TypeError old chrome and FF
+            window.BlobBuilder = window.BlobBuilder ||
+                window.WebKitBlobBuilder ||
+                window.MozBlobBuilder ||
+                window.MSBlobBuilder;
+            if (e.name == 'TypeError' && window.BlobBuilder) {
+                var bb = new BlobBuilder();
+                bb.append("\ufeff")
+                bb.append(csv);
+                csv_File = bb.getBlob("data:text/csv;charset=utf-8;");
+            } else if (e.name == "InvalidStateError") {
+                // InvalidStateError (tested on FF13 WinXP)
+                csv_File = new Blob(["\ufeff" + csv], { type: "data:text/csv;charset=utf-8;" })
+            } else {
+                // We're screwed, blob constructor unsupported entirely   
+            }
+        }
+        let btn_tag = document.createElement('button')
         download_link = document.createElement('a')
         download_link.download = filename;
+        download_link.style = 'display:block; text-decoration:none'
+        console.log(csv_File)
         download_link.href = window.URL.createObjectURL(csv_File)
-        download_link.style.display = 'none'
-        document.body.appendChild(download_link)
-        download_link.click() // download is worked
+        console.log(download_link.href)
+        download_link.innerText = 'Download'
+        btn_tag.appendChild(download_link)
+
+        let save_box = document.getElementById('save_box_download')
+        save_box.appendChild(btn_tag)
+            //document.location = download_link.href
     }
 }
 export var db = new Database();

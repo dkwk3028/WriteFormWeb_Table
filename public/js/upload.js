@@ -155,7 +155,7 @@ async function _createNoteForm() {
             return
         }
         let rvals = [menus1[i].value, parseInt(menus2[i].value)]
-        let data = { 'head': rvals[0], 'col': rvals[1] }
+        let data = { 'head': rvals[0], 'col': rvals[1]}
         cols += rvals[1]
         datas.push(data)
 

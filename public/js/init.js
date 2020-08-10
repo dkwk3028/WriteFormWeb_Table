@@ -26,6 +26,8 @@ window.onload = function() {
             b_prev_data_show: false,
             b_modal_show_csv: false,
             b_possible_load_more: true,
+            b_modal_show_download_btn: false,
+            download_note_form: null,
             temp_td_datas: {},
             prev_datas: [],
             td_datas: [],
@@ -40,6 +42,9 @@ window.onload = function() {
             colspans: [
 
             ],
+            check_boxs: [
+
+            ],
             headers: [],
             first_datas: [
                 { 'head': 'Location', 'heads': ['위치'], 'data': [''] },
@@ -49,6 +54,13 @@ window.onload = function() {
             row_num: 0
         },
         methods: {
+            closeModalDownloadBtn: function() {
+                this.b_modal_show_download_btn = false;
+            },
+            showDownloadBtn: function() {
+                this.b_modal_show_download_btn = true;
+            },
+
             showModal: function(event) {
 
                 if (this.b_modify) {
@@ -182,13 +194,21 @@ window.onload = function() {
             saveModal: function() {
                 for (let i = 0; i < this.DATA_COUNT; ++i) {
                     let input_tag = document.getElementById(`modal_input${i}`)
+                    let apply_col = document.getElementById(`apply_col_box${i}`)
                     let val = parseFloat(input_tag.value);
                     if (isNaN(val)) {
                         alert('숫자가 아닌 항목이 있습니다');
                         return;
                     }
-
-                    this.td_datas[this.row_num][i] = val;
+                    else{
+                        if (apply_col.checked){
+                            for (let j=0; j<this.ROW_COUNT; ++j){
+                                this.td_datas[j][i] = val;
+                            }
+                        }else{
+                            this.td_datas[this.row_num][i] = val;
+                        }
+                    }
                 }
                 this.calAvgs();
                 this.closeModal();
@@ -333,7 +353,13 @@ window.onload = function() {
                 this.toggleShow()
             },
             downloadCSV: function(note_form) {
-                db.downloadCSV(note_form)
+                this.showDownloadBtn()
+                this.download_note_form = note_form
+                    //db.downloadCSV(note_form)
+            },
+            downloadToCSV: function() {
+                console.log('me')
+                db.downloadCSV(this.download_note_form)
             }
 
         }
