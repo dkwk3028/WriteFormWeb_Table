@@ -27,21 +27,24 @@ window.onload = function() {
             b_modal_show_csv: false,
             b_possible_load_more: true,
             b_modal_show_download_btn: false,
+            b_modal_show_col: false,
             download_note_form: null,
             temp_td_datas: {},
             prev_datas: [],
             td_datas: [],
+            check_boxs : [],
             note_form_loads: [],
+            modify_col_number: 0,
             header_keys: [
-                { 'head': 'Length', 'col': 1 },
-                { 'head': 'Count_No.', 'col': 1 },
-                { 'head': 'SPAD', 'col': 3 },
-                { 'head': 'Panicle No.', 'col': 1 },
-                { 'head': 'Note', 'col': 1 }
+                { 'head': 'Length', 'col': 1,'checks':false },
+                { 'head': 'Count_No.', 'col': 1,'checks':false },
+                { 'head': 'SPAD', 'col': 3, 'checks':true },
+                { 'head': 'Panicle No.', 'col': 1,'checks':false },
             ],
             colspans: [
 
             ],
+            checked: false,
             check_boxs: [
 
             ],
@@ -60,7 +63,22 @@ window.onload = function() {
             showDownloadBtn: function() {
                 this.b_modal_show_download_btn = true;
             },
-
+            showModalByCol: function(event){
+                let td = event.target
+                let class_name = td.className
+                class_name = class_name.replace(/^bycol\d+-/g,'')
+                let col_number = parseInt(class_name)
+                console.log(this.check_boxs[col_number])
+                if (this.check_boxs[col_number]){
+                    this.showModal(event);
+                    return;
+                }
+                this.modify_col_number = col_number
+                this.b_modal_show_col = true
+            },
+            closeModalByCol: function(){
+                this.b_modal_show_col = false
+            },
             showModal: function(event) {
 
                 if (this.b_modify) {
@@ -195,8 +213,13 @@ window.onload = function() {
                 for (let i = 0; i < this.DATA_COUNT; ++i) {
                     let input_tag = document.getElementById(`modal_input${i}`)
                     let apply_col = document.getElementById(`apply_col_box${i}`)
-                    let val = parseFloat(input_tag.value);
-                    if (isNaN(val)) {
+                    let val;
+                    if (i != (this.DATA_COUNT-1)){
+                        val = parseFloat(input_tag.value);
+                    }else{
+                        val = input_tag.value
+                    }
+                    if (i != (this.DATA_COUNT-1) && isNaN(val)) {
                         alert('숫자가 아닌 항목이 있습니다');
                         return;
                     }
@@ -213,6 +236,26 @@ window.onload = function() {
                 this.calAvgs();
                 this.closeModal();
             },
+            saveModalByCol: function(step) {
+                console.log(this.modify_col_number)
+                for (let i = 1; i <= this.ROW_COUNT; ++i) {
+                    let input_tag = document.getElementById(`modal_input${i*step}`)
+                    let val;
+                    if (this.modify_col_number != (this.DATA_COUNT-1)){ 
+                        val = parseFloat(input_tag.value);
+                        if (isNaN(val)) {
+                            alert('숫자가 아닌 항목이 있습니다');
+                            return;
+                        }
+                    }else{
+                        val = input_tag.value;
+                    }
+                    this.td_datas[i-1][this.modify_col_number] = val;
+                }
+                if (this.modify_col_number != (this.DATA_COUNT-1))
+                    this.calAvgs();
+                this.closeModalByCol();
+            },
             saveModalHead: function() {
                 for (let i = 0; i < this.first_datas[this.row_num].data.length; ++i) {
                     let input_tag = document.getElementById(`modal_head_input${i}`)
@@ -226,14 +269,14 @@ window.onload = function() {
                 this.closeModalHead();
             },
             calAvgs: function() {
-                let sums = Array(this.DATA_COUNT).fill(0);
+                let sums = Array(this.DATA_COUNT-1).fill(0);
                 for (let i = 0; i < this.ROW_COUNT; ++i) {
                     let row = this.td_datas[i];
-                    for (let j = 0; j < this.DATA_COUNT; ++j) {
+                    for (let j = 0; j < this.DATA_COUNT-1; ++j) {
                         sums[j] += row[j];
                     }
                 }
-                for (let i = 0; i < this.DATA_COUNT; ++i) {
+                for (let i = 0; i < this.DATA_COUNT-1; ++i) {
                     this.avgs[i] = sums[i] / this.ROW_COUNT;
                 }
 
@@ -242,11 +285,13 @@ window.onload = function() {
             clearAll: function() {
                 this.td_datas = []
                 this.avgs = []
+                this.check_boxs = []
                 for (let i = 0; i < this.ROW_COUNT; ++i) {
-                    this.td_datas.push(Array(this.DATA_COUNT).fill(EMPTY_DATA))
+                    this.td_datas.push(Array(this.DATA_COUNT-1).fill(EMPTY_DATA))
+                    this.td_datas[i].push('')
                 }
 
-                for (let i = 0; i < this.DATA_COUNT; ++i) {
+                for (let i = 0; i < this.DATA_COUNT-1; ++i) {
                     this.avgs.push(0);
                 }
 
@@ -255,6 +300,7 @@ window.onload = function() {
                         this.first_datas[i].data[j] = ''
                     }
                 }
+
             },
             toggleShow: function() {
                 this.page_show = !this.page_show;
@@ -264,11 +310,13 @@ window.onload = function() {
                 this.td_datas = []
                 this.avgs = []
                 this.headers = []
+                this.check_boxs = []
                 for (let i = 0; i < this.ROW_COUNT; ++i) {
-                    this.td_datas.push(Array(this.DATA_COUNT).fill(EMPTY_DATA))
+                    this.td_datas.push(Array(this.DATA_COUNT-1).fill(EMPTY_DATA))
+                    this.td_datas[i].push('')
                 }
 
-                for (let i = 0; i < this.DATA_COUNT; ++i) {
+                for (let i = 0; i < this.DATA_COUNT-1; ++i) {
                     this.avgs.push(0);
                 }
                 for (let i = 0; i < this.first_datas.length; ++i) {
@@ -280,10 +328,13 @@ window.onload = function() {
                     if (head.col != 1) {
                         for (let i = 0; i < head.col; ++i) {
                             this.headers.push(`${head.head}${i+1}`)
+                            this.check_boxs.push(head.checks)
                         }
                     } else {
                         this.headers.push(`${head.head}`)
+                        this.check_boxs.push(head.checks)
                     }
+                    
                 }
             },
             clickedModify: function(event) {
@@ -345,7 +396,7 @@ window.onload = function() {
                 this.header_keys = db.note_form.keys.filter(function(el) { return el != null; })
 
                 this.ROW_COUNT = note_form.row
-                this.DATA_COUNT = note_form.col
+                this.DATA_COUNT = note_form.col + 1
                 this.init()
                 db.setCurrentForm(db.current_form)
 
@@ -402,10 +453,14 @@ function addMenu() {
     let form2 = document.getElementById('create_form_div2');
     let template_div = document.createElement('div')
     template_div.style = 'margin:10px 0px 30px 0px'
-    template_div.innerHTML = `<input class='modal_cols menu_input menu1' placeholder='ex)Length'>`
+    template_div.innerHTML = `<input class='modal_cols menu_input menu1' placeholder='ex)Length'>
+    <p style='margin:0'><input type='checkbox' class='modal_apply_check_box' v-model='checked'><span style='color:#ff0000'>행단위로 보기</span></p>
+    `
     let template_div2 = document.createElement('div')
     template_div2.style = 'margin:10px 0px 30px 0px'
-    template_div2.innerHTML = `<input class='modal_cols menu_input menu2' placeholder='ex)3'>`
+    template_div2.innerHTML = `<input class='modal_cols menu_input menu2' placeholder='ex)3'>
+    <p style='margin:0;color:transparent'>z</p>
+    `
     form.appendChild(template_div)
     form2.appendChild(template_div2)
 }

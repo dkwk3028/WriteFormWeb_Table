@@ -65,7 +65,7 @@ function check_datas_empty() {
     for (let i = 0; i < app_vue.ROW_COUNT; ++i) {
         for (let j = 0; j < app_vue.DATA_COUNT; ++j) {
             let data = app_vue.td_datas[i][j]
-            if (data === '') {
+            if (j != (app_vue.DATA_COUNT -1) && data === '') {
                 alert('모든 항목을 채워주세요')
                 return true;
             }
@@ -117,6 +117,7 @@ async function createNoteForm() {
 async function _createNoteForm() {
     let menus1 = document.getElementsByClassName('menu1')
     let menus2 = document.getElementsByClassName('menu2')
+    let check_boxs = document.getElementsByClassName('modal_apply_check_box')
     let title = document.getElementById('doc_title').value
     let rows = document.getElementById('doc_row').value
 
@@ -154,8 +155,9 @@ async function _createNoteForm() {
             alert('열갯수 항목에 문자열이 존재합니다')
             return
         }
+        let check_data = check_boxs[i].checked;
         let rvals = [menus1[i].value, parseInt(menus2[i].value)]
-        let data = { 'head': rvals[0], 'col': rvals[1]}
+        let data = { 'head': rvals[0], 'col': rvals[1], 'checks' : check_data}
         cols += rvals[1]
         datas.push(data)
 

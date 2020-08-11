@@ -35,7 +35,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td v-for="head in [{'head':'Data', 'col':1},...header_keys]" v-bind:colspan='head.col'>
+                            <td v-for="head in [{'head':'Data', 'col':1},...header_keys,{'head':'Note.', 'col':1}]" v-bind:colspan='head.col'>
                                 {{head.head}}
                             </td>
 
@@ -43,10 +43,13 @@
                     </thead>
 
                     <tbody>
-                        <tr class='datas' v-for="(row, row_num) in td_datas" v-on:click='showModal'>
+                        <tr class='datas' v-for="(row, row_num) in td_datas">
                             <th>{{row_num+1}}</th>
-                            <td v-for="(col, col_num) in row">
-                                {{col}}
+                            <td v-for="col_num in DATA_COUNT-1" v-on:click='showModalByCol' v-bind:class="'bycol' + row_num + '-' + (col_num-1)">
+                                {{row[col_num-1]}}
+                            </td>
+                            <td v-bind:class="'bycol' + row_num + '-' + (DATA_COUNT-1)"  v-on:click='showModalByCol'>
+                                {{td_datas[row_num][DATA_COUNT-1]}}
                             </td>
                         </tr>
 
@@ -62,6 +65,32 @@
         </transition>
 
         <transition name='fade'>
+            <div v-if='b_modal_show_col' class='modal'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span v-if='modify_col_number != DATA_COUNT-1' class='close not_close'>{{headers[modify_col_number]}}</span>
+                        <span v-else class='close not_close'>Note.</span>
+                        <span class='close' v-on:click='closeModalByCol' style='float:right;'>&times;</span>
+                    </div>
+                    <p class='modal_cols'><input type='checkbox' class='apply_col_box' v-model='checked'><span style='color:#ff0000'>모든행 적용</span></p>
+                    <div v-if='b_modal_show_col && !checked' v-for='row_index in ROW_COUNT'>
+                        <p class='modal_cols' >{{row_index}}. </p>
+                        <input v-bind:type='modify_col_number == (DATA_COUNT-1) ? "text" : "number"' v-bind:id="'modal_input'+row_index" class='modal_cols' v-bind:value='td_datas[row_index-1][modify_col_number]'>
+                    </div>
+                    <div v-if='b_modal_show_col && checked'>
+                        <p class='modal_cols' >모든 행 </p>
+                        <input v-bind:type='modify_col_number == (DATA_COUNT-1) ? "text" : "number"' v-bind:id="'modal_input0'" class='modal_cols'>
+                    </div>
+
+                    <div class='save_box'>
+                        <button v-if='b_modal_show_col && !checked' v-on:click='saveModalByCol(1)'>Edit</button>
+                        <button v-if='b_modal_show_col && checked' v-on:click='saveModalByCol(0)'>Edit</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <transition name='fade'>
             <div v-if='b_modal_show' class='modal'>
                 <div class='modal-content'>
                     <div class='close_div'>
@@ -70,9 +99,9 @@
                         <span class='close' v-on:click='closeModal' style='float:right;'>&times;</span>
                     </div>
                     <div v-if='!b_modal_avg' v-for='(col, col_num) in td_datas[row_num]'>
-                        <p class='modal_cols' >{{headers[col_num]}} 
+                        <p class='modal_cols' >{{col_num == (DATA_COUNT-1) ? 'Note.' : headers[col_num]}} 
                             <input type='checkbox' class='apply_col_box' v-bind:id="'apply_col_box'+col_num"><span style='color:#ff0000'>모든행 적용</span></p>
-                        <input type='number' v-bind:id="'modal_input'+col_num" class='modal_cols' v-bind:value='col'>
+                        <input v-bind:type='col_num==(DATA_COUNT-1) ? "text" : "number" ' v-bind:id="'modal_input'+col_num" class='modal_cols' v-bind:value='col'>
                     </div>
                     <div v-if='b_modal_avg' v-for='(col, col_num) in avgs'>
                         <p class='modal_cols'>{{headers[col_num]}} </p>
@@ -158,7 +187,7 @@
                             <div style='display:flex; flex-direction: column; justify-content: center; align-items: center;'>
                                 <p class='modal_cols menu_input' style='text-align:center;'>항목</p>
                                 <div style='margin:10px 0px 30px 0px'>
-                                    <input class='modal_cols menu_input menu1' placeholder='ex)Length'>
+                                    <input class='modal_cols menu_input menu1' placeholder='ex)Length'><p style='margin:0'><input type='checkbox' class='modal_apply_check_box' v-model='checked'><span style='color:#ff0000'>행단위로 보기</span></p>
                                 </div>
                             </div>
                         </div>
@@ -166,7 +195,7 @@
                             <div style='display:flex; flex-direction: column; justify-content: center; align-items: center;'>
                             <p class='modal_cols menu_input' style='text-align:center;'>열 갯수</p>
                             <div style='margin:10px 0px 30px 0px'>
-                                <input class='modal_cols menu_input menu2' placeholder='ex)3'>
+                                <input class='modal_cols menu_input menu2' placeholder='ex)3'><p style='margin:0;color:transparent'>z</p>
                             </div>
                             </div>
                         </div>

@@ -29,7 +29,7 @@ class Database {
             //console.log(app_vue.ROW_COUNT)
 
         app_vue.ROW_COUNT = this.note_form.row;
-        app_vue.DATA_COUNT = this.note_form.col;
+        app_vue.DATA_COUNT = this.note_form.col + 1;
         //console.log(app_vue.ROW_COUNT)
         app_vue.b_page_show = true;
         app_vue.init();
@@ -124,7 +124,7 @@ class Database {
 
         await this.readNoteCurrents();
         app_vue.ROW_COUNT = row
-        app_vue.DATA_COUNT = col
+        app_vue.DATA_COUNT = col + 1
 
         app_vue.header_keys = this.note_form.keys.filter(function(el) { return el != null; })
         app_vue.init()
@@ -134,13 +134,12 @@ class Database {
     pushDefaultNoteForm() {
         this.setData('note_form/list/' + 'Default', {
             'row': 16,
-            'col': 7,
+            'col': 6,
             'keys': [
-                { 'head': 'Length', 'col': 1 },
-                { 'head': 'Count_No.', 'col': 1 },
-                { 'head': 'SPAD', 'col': 3 },
-                { 'head': 'Panicle No.', 'col': 1 },
-                { 'head': 'Note', 'col': 1 }
+                { 'head': 'Length', 'col': 1,'checks':false },
+                { 'head': 'Count_No.', 'col': 1,'checks':false },
+                { 'head': 'SPAD', 'col': 3, 'checks':true },
+                { 'head': 'Panicle No.', 'col': 1,'checks':false },
             ],
             'title': 'Default',
             'lower': 'default'
@@ -240,11 +239,16 @@ class ToCSV {
                 }
             }
         }
+        columns.push('Note.')
         columns.push('UID')
         let keys = Object.keys(data)
 
         let csv_data = []
+        let avg_data = ['Avg','','',...Array(app_vue.DATA_COUNT-1).fill(0),'','']
+        console.log(avg_data)
         csv_data.push(columns.join(', '))
+
+        let total = 0
         for (let i = 0; i < keys.length; ++i) {
             let user_key = keys[i]
 
@@ -254,14 +258,29 @@ class ToCSV {
             for (let j = 0; j < push_keys.length; ++j) {
                 let push_key = push_keys[push_keys.length - 1 - j]
                 let push_data = user_data[push_key]
-
+                total += push_data.datas.length
                 for (let sub_push_data of push_data.datas) {
+                    
                     let row = [push_data.time, push_data.Location, push_data.Writer]
                     csv_data.push([...row, ...sub_push_data, push_data.uid].join(', '))
+                    for (let k=0; k<sub_push_data.length-1; ++k){
+                        avg_data[k+3] += sub_push_data[k]
+                        
+                    }
                 }
             }
 
         }
+
+        
+        total = total==0 ? 1 : total
+        console.log(`total is ${total}`)
+        for (let i=0; i<app_vue.DATA_COUNT-1; ++i){
+            console.log(`${i}번째 avg_data : ${avg_data[i+3]}`)
+            avg_data[i+3] /= total
+        }
+        csv_data.push(Array(app_vue.DATA_COUNT + 4).fill('').join(', '))
+        csv_data.push(avg_data.join(', '))
         return csv_data.join('\n')
     }
     downloadCSV(data, note_form, filename) {
@@ -275,7 +294,7 @@ class ToCSV {
 
         let csv = this.changeDataToCSV(data, note_form)
         try {
-            csv_File = new Blob(["\ufeff" + csv], { type: "data:text/csv;charset=utf-8;" })
+            csv_File = new Blob(["\ufeff" + csv], { type: "data:text/csv;charset=utf-8" })
         } catch (e) {
                 // TypeError old chrome and FF
             window.BlobBuilder = window.BlobBuilder ||
@@ -286,26 +305,23 @@ class ToCSV {
                 var bb = new BlobBuilder();
                 bb.append("\ufeff")
                 bb.append(csv);
-                csv_File = bb.getBlob("data:text/csv;charset=utf-8;");
+                csv_File = bb.getBlob("data:text/csv;charset=utf-8");
             } else if (e.name == "InvalidStateError") {
                 // InvalidStateError (tested on FF13 WinXP)
-                csv_File = new Blob(["\ufeff" + csv], { type: "data:text/csv;charset=utf-8;" })
+                csv_File = new Blob(["\ufeff" + csv], { type: "data:text/csv;charset=utf-8" })
             } else {
                 // We're screwed, blob constructor unsupported entirely   
             }
         }
         
-        let reader = new FileReader();
-        reader.onload = function(e){
-            window.location.href = reader.result;
-        }
-        reader.readAsDataURL(csv_File)
         let btn_tag = document.createElement('button')
         download_link = document.createElement('a')
+        download_link.target = '_blank'
         download_link.download = filename;
         download_link.style = 'display:block; text-decoration:none'
         console.log(csv_File)
         download_link.href = window.URL.createObjectURL(csv_File)
+        
         console.log(download_link.href)
         download_link.innerText = 'Download'
         btn_tag.appendChild(download_link)
