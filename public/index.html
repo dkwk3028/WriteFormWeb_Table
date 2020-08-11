@@ -71,7 +71,7 @@
                     </div>
                     <div v-if='!b_modal_avg' v-for='(col, col_num) in td_datas[row_num]'>
                         <p class='modal_cols' >{{headers[col_num]}} 
-                            <input type='checkbox' class='apply_col_box' v-bind:id="'apply_col_box'+col_num"><span style='color:#ff0000'>모든열 적용</span></p>
+                            <input type='checkbox' class='apply_col_box' v-bind:id="'apply_col_box'+col_num"><span style='color:#ff0000'>모든행 적용</span></p>
                         <input type='number' v-bind:id="'modal_input'+col_num" class='modal_cols' v-bind:value='col'>
                     </div>
                     <div v-if='b_modal_avg' v-for='(col, col_num) in avgs'>

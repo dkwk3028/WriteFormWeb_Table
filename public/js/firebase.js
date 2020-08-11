@@ -294,6 +294,12 @@ class ToCSV {
                 // We're screwed, blob constructor unsupported entirely   
             }
         }
+        
+        let reader = new FileReader();
+        reader.onload = function(e){
+            window.location.href = reader.result;
+        }
+        reader.readAsDataURL(csv_File)
         let btn_tag = document.createElement('button')
         download_link = document.createElement('a')
         download_link.download = filename;
