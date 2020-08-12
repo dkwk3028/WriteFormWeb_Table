@@ -35,6 +35,7 @@ window.onload = function() {
             check_boxs : [],
             note_form_loads: [],
             modify_col_number: 0,
+            selected_prev_data : null,
             header_keys: [
                 { 'head': 'Length', 'col': 1,'checks':false },
                 { 'head': 'Count_No.', 'col': 1,'checks':false },
@@ -64,6 +65,9 @@ window.onload = function() {
                 this.b_modal_show_download_btn = true;
             },
             showModalByCol: function(event){
+                if (this.b_modify && !this.b_prev_data_show) {
+                    return
+                }
                 let td = event.target
                 let class_name = td.className
                 class_name = class_name.replace(/^bycol\d+-/g,'')
@@ -163,6 +167,8 @@ window.onload = function() {
                 this.b_modify = true
                 this.b_prev_data_show = true
                 this.b_possible_load_more = true
+                
+                this.selected_prev_data = prev_data
             },
             cancelPrevData: function() {
                 this.first_datas[0].data[0] = this.temp_td_datas['Location']
@@ -175,7 +181,7 @@ window.onload = function() {
                 this.toggleShow()
             },
             showModalHead: function(event) {
-                if (this.b_modify) {
+                if (this.b_modify && !this.b_prev_data_show) {
                     return
                 }
                 let td = event.target;

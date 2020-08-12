@@ -312,8 +312,8 @@
             <div v-if='b_modify && !b_prev_data_show'>
                 <button id='cancel_form_btn' v-on:click='cancelBtnClicked'>Cancel</button>
             </div>
-            <div v-if='!b_modify'>
-                <button id='upload_btn' onclick='uploadClicked()'>Upload</button>
+            <div v-if='!b_modify || b_prev_data_show'>
+                <button id='upload_btn' onclick='uploadClicked()'>{{b_prev_data_show ? "Edit" : "Upload"}}</button>
             </div>
             <div v-if='b_prev_data_show'>
                 <button id='upload_btn' v-on:click='cancelPrevData'>Cancel</button>

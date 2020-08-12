@@ -23,10 +23,16 @@ function _uploadClicked() {
     let user = firebase.auth().currentUser;
     if (user == null) {
         alert('로그인이 되어있지 않습니다')
+        return
     }
     let upload_data = {};
     for (let head of app_vue.first_datas) {
         let key = head.head;
+        let temp_array = head.data.filter((datax)=>{return datax.includes(',')})
+        if (temp_array.length != 0){
+            alert('쉼표가 들어간 항목이 있습니다')
+            return
+        }
         upload_data[key] = head.data.join(', ')
     }
     upload_data['datas'] = []
@@ -35,6 +41,13 @@ function _uploadClicked() {
         let datas = []
         for (let j = 0; j < app_vue.DATA_COUNT; ++j) {
             let data = app_vue.td_datas[i][j]
+
+            if (j == app_vue.DATA_COUNT - 1){
+                if (data.includes(',')){
+                    alert('쉼표가 들어간 항목이 있습니다')
+                    return
+                }
+            }
             datas.push(data)
         }
         upload_data['datas'].push(datas)
@@ -52,11 +65,23 @@ function _uploadClicked() {
 
     console.log(upload_data)
     for (let i = 0; i < 1; ++i) {
-        db.pushData('notes/' + title + '/' + user.uid, upload_data)
+        if (app_vue.b_prev_data_show){
+            db.setData('notes/' + title + '/' + user.uid + '/' + app_vue.selected_prev_data.push_key, upload_data)
+        }else{
+            db.pushData('notes/' + title + '/' + user.uid, upload_data)
+        }
     }
-    app_vue.clearAll();
 
-    app_vue.toggleShow();
+    if (app_vue.b_prev_data_show){
+        app_vue.cancelPrevData()
+    }else{
+        app_vue.clearAll();
+
+        app_vue.toggleShow();
+    }
+
+
+    
 
 }
 
