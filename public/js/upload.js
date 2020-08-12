@@ -33,7 +33,7 @@ function _uploadClicked() {
             alert('쉼표가 들어간 항목이 있습니다')
             return
         }
-        upload_data[key] = head.data.join(', ')
+        upload_data[key] = head.data.join('、')
     }
     upload_data['datas'] = []
     upload_data['avg'] = []

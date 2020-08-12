@@ -197,6 +197,7 @@ class Database {
 
             let child = snapshot.val()[push_key]
             child['push_key'] = push_key
+
             datas.push(child)
             console.log(child)
             i += 1
@@ -263,11 +264,8 @@ class ToCSV {
                     
                     let row = [push_data.time, push_data.Location, push_data.Writer]
                     csv_data.push([...row, ...sub_push_data, push_data.uid].join(', '))
-                    for (let k=0; k<sub_push_data.length-1; ++k){
-                        avg_data[k+3] += sub_push_data[k]
-                        
-                    }
                 }
+                csv_data.push(['Avg','','', ...push_data.avg, '', push_data.uid].join(', '))
             }
 
         }
@@ -275,12 +273,6 @@ class ToCSV {
         
         total = total==0 ? 1 : total
         console.log(`total is ${total}`)
-        for (let i=0; i<app_vue.DATA_COUNT-1; ++i){
-            console.log(`${i}번째 avg_data : ${avg_data[i+3]}`)
-            avg_data[i+3] /= total
-        }
-        csv_data.push(Array(app_vue.DATA_COUNT + 4).fill('').join(', '))
-        csv_data.push(avg_data.join(', '))
         return csv_data.join('\n')
     }
     downloadCSV(data, note_form, filename) {

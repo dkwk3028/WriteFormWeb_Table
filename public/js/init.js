@@ -51,7 +51,7 @@ window.onload = function() {
             ],
             headers: [],
             first_datas: [
-                { 'head': 'Location', 'heads': ['위치'], 'data': [''] },
+                { 'head': 'Location', 'heads': ['위치1','위치2'], 'data': ['', ''] },
                 { 'head': 'Writer', 'heads': ['Writer'], 'data': [''] }
             ],
             avgs: [],
@@ -151,15 +151,15 @@ window.onload = function() {
                 this.closeModalPrev()
 
                 this.temp_td_datas = {}
-                this.temp_td_datas['Location'] = this.first_datas[0].data[0]
-                this.temp_td_datas['Writer'] = this.first_datas[1].data[0]
+                this.temp_td_datas['Location'] = this.first_datas[0].data
+                this.temp_td_datas['Writer'] = this.first_datas[1].data
 
                 this.temp_td_datas['td_datas'] = [...this.td_datas]
                 this.temp_td_datas['ROW_COUNT'] = this.ROW_COUNT;
                 this.temp_td_datas['Avg'] = [...this.avgs]
 
-                this.first_datas[0].data[0] = prev_data.Location
-                this.first_datas[1].data[0] = prev_data.Writer
+                this.first_datas[0].data = prev_data.Location.split('、')
+                this.first_datas[1].data = prev_data.Writer.split('、')
                 this.td_datas = prev_data.datas
                 this.avgs = prev_data.avg
                 this.ROW_COUNT = prev_data.datas.length
@@ -171,8 +171,8 @@ window.onload = function() {
                 this.selected_prev_data = prev_data
             },
             cancelPrevData: function() {
-                this.first_datas[0].data[0] = this.temp_td_datas['Location']
-                this.first_datas[1].data[0] = this.temp_td_datas['Writer']
+                this.first_datas[0].data = this.temp_td_datas['Location']
+                this.first_datas[1].data = this.temp_td_datas['Writer']
                 this.td_datas = [...this.temp_td_datas['td_datas']]
                 this.avgs = [...this.temp_td_datas['Avg']]
                 this.ROW_COUNT = this.temp_td_datas['ROW_COUNT']

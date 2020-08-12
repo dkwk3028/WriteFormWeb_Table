@@ -26,12 +26,12 @@
                     <thead>
                         <tr>
                             <td v-bind:colspan='Math.floor((DATA_COUNT+1)/2)' class='td_head heads'>Location: </td>
-                            <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='location' v-on:click='showModalHead'>{{first_datas[0].data}}
+                            <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='location' v-on:click='showModalHead'>{{first_datas[0].data.join('、')}}
                             </td>
                         </tr>
                         <tr>
                             <td v-bind:colspan='Math.floor((DATA_COUNT+1)/2)' class='td_head heads'>Writer: </td>
-                            <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='writer' v-on:click='showModalHead'>{{first_datas[1].data}}
+                            <td v-bind:colspan='Math.ceil((DATA_COUNT+1)/2)' class='datas' id='writer' v-on:click='showModalHead'>{{first_datas[1].data.join('')}}
                             </td>
                         </tr>
                         <tr>
