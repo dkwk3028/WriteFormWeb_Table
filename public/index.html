@@ -299,7 +299,51 @@
             </div>
         </transition>
 
+        <transition name='slide-up'>
+            <div v-if='b_modal_show_add_col_btn' class='modal left'>
+                <div class='modal-content'>
+                    <div class='close_div'>
+                        <span class='close not_close'>열 추가하기</span>
+                        <span class='close' v-on:click='closeModalAddColBtn' style='float:right'>&times;</span>
+                    </div>
+                    <div style='display:flex; justify-content:space-around;'>
+                        <div id='create_form_div1' style='display:flex;flex-direction:column;justify-content: center;align-items: center;padding:15px'>
+                            <div style='display:flex; flex-direction: column; justify-content: center; align-items: center;'>
+                                <p class='modal_cols menu_input' style='text-align:center;'>항목</p>
+                                <div style='margin:10px 0px 30px 0px'>
+                                    <input class='modal_cols menu_input menu1' placeholder='ex)Length'><p style='margin:0'><input type='checkbox' class='modal_apply_check_box' v-model='checked'><span style='color:#ff0000'>행단위로 보기</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id='create_form_div2' style='display:flex;flex-direction:column;justify-content: center;align-items: center;padding:15px'>
+                            <div style='display:flex; flex-direction: column; justify-content: center; align-items: center;'>
+                            <p class='modal_cols menu_input' style='text-align:center;'>열 갯수</p>
+                            <div style='margin:10px 0px 30px 0px'>
+                                <input class='modal_cols menu_input menu2' placeholder='ex)3'><p style='margin:0;color:transparent'>z</p>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style='display:flex;justify-content: center;align-items: center;margin-top:25px; margin-bottom:30px'>
+                        <button onclick='addMenu()'>+</button>
+                    </div>
+                    <div style='display:flex;justify-content: center;align-items: center;margin-top:25px; margin-bottom:30px'>
+                        <button onclick='removeMenu()'>-</button>
+                    </div>
+                    <div id='save_box_download' class='save_box'>
+                        <button id='edit_note_form_btn' onclick='saveNoteFormCol()'>Edit</button>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </transition>
+
         <div class='upload_btn_box'>
+            <div v-if='b_modify && !b_prev_data_show'>
+                <button id='add_col_btn' v-on:click='addColBtnClicked'>열 추가하기</button>
+            </div>
             <div v-if='b_modify && !b_prev_data_show'>
                 <button id='add_row_btn' v-on:click='addRowBtnClicked'>+</button>
             </div>

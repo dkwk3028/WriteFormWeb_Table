@@ -1,11 +1,39 @@
 import { db } from "./firebase.js";
 import { login } from "./login.js";
+import {removeSpace, isEmpty, hasSpecial} from "./upload.js"
 
 const EMPTY_DATA = 0
 export var app_vue;
 
+
+/*
+app_vue는 vue object 입니다.
+
+app_vue.init 를 통해  app_vue 가 가진 값들을 초기화 해줄수 있습니다.
+보통 업데이트를 한 이후 새로 기록을 받아와서 다시 새로 값을 넣어야할때 호출해주는 모습을 볼 수 있습니다.
+
+app_vue.clearAll은 좀더 작은단위의 초기화이고, 항목들을 초기화 시켜주고, 평균값 부분도 초기화 시켜줍니다.
+
+db.init를 호출하면 서버에서 최신 기록을 받아오고, app_vue.init를 실행해줍니다. db는 firebase에 선언된 Database 객체입니다.
+
+이외의 함수들은 별 다른 내용이없고, html과 연동되는 함수들입니다..
+-------------------------------------------------------------------
+주요 변수들)
+
+td_datas => 항목들에 해당하는 값들이 [[],[],[],...] 의 2d array 형태로 들어 있습니다.
+first_datas = > Location과 Writer에 해당하는 값들이 [{},{}] 의 형태로 들어있으며, 'data' : [] 에 값이 저장됩니다
+avgs => 평균값이 저장됩니다.
+header_keys => 양식의 항목들 정보가 들어있습니다.  'head'는 열의 이름, 'col'은 열 갯수입니다.
+
+b_modal_show_... => 각 modal box를 보여줄지 결정하는 boolean 변수들 입니다.  보통 showModal~ 의 형식을 이용해서 b_modal_show_... 를 true로 만들어 보여주고, closeModal~의 형식을 이용해서 
+b_modal_show를 false로 만듭니다.
+
+DATA_COUNT : Note를 포함한 col 갯수입니다. 처음 app_vue에서 설정된 값은 아무런 효과가 없고  db.init에서 app_vue.DATA_COUNT 가 초기화됩니다.
+ROW_COUNT : 행 갯수입니다. 마찬가지로 db.init에서 초기화됩니다.
+*/
 window.onload = function() {
 
+    //vue object 생성
     app_vue = new Vue({
         el: '#app',
         data: {
@@ -28,6 +56,7 @@ window.onload = function() {
             b_possible_load_more: true,
             b_modal_show_download_btn: false,
             b_modal_show_col: false,
+            b_modal_show_add_col_btn: false,
             download_note_form: null,
             temp_td_datas: {},
             prev_datas: [],
@@ -51,10 +80,11 @@ window.onload = function() {
             ],
             headers: [],
             first_datas: [
-                { 'head': 'Location', 'heads': ['위치1','위치2'], 'data': ['', ''] },
+                { 'head': 'Location', 'heads': ['Location1','Location2'], 'data': ['', ''] },
                 { 'head': 'Writer', 'heads': ['Writer'], 'data': [''] }
             ],
             avgs: [],
+            
             row_num: 0
         },
         methods: {
@@ -160,8 +190,26 @@ window.onload = function() {
 
                 this.first_datas[0].data = prev_data.Location.split('、')
                 this.first_datas[1].data = prev_data.Writer.split('、')
+
+                let modifyed_prev_data_datas = []
+                const prev_data_col = prev_data.datas[0].length
+                if (prev_data_col < this.DATA_COUNT){
+                    for (let row_index=0; row_index < prev_data.datas.length; ++row_index){
+                        let note_col_arr = prev_data.datas[row_index].splice(prev_data_col-1,1)
+                        let row_data = [...prev_data.datas[row_index], ...Array(this.DATA_COUNT - prev_data_col).fill(0),note_col_arr[0]]
+                        console.log(row_data)
+                        modifyed_prev_data_datas.push(row_data)
+                    }
+                    prev_data.datas = modifyed_prev_data_datas
+                    prev_data.avg.push(...Array(this.DATA_COUNT - prev_data_col).fill(0))
+
+                    console.log(prev_data.avg)
+                    console.log(prev_data.datas)
+                }
                 this.td_datas = prev_data.datas
                 this.avgs = prev_data.avg
+
+                //this.DATA_COUNT = prev_data.datas[0].length + 1
                 this.ROW_COUNT = prev_data.datas.length
 
                 this.b_modify = true
@@ -349,6 +397,12 @@ window.onload = function() {
                 this.b_modify = true;
                 this.b_modify_block = false;
             },
+            addColBtnClicked: function(event) {
+                this.b_modal_show_add_col_btn = true;
+            },
+            closeModalAddColBtn: function(){
+                this.b_modal_show_add_col_btn = false;
+            },
             addRowBtnClicked: function(event) {
                 if (this.b_modify_block) {
                     return
@@ -423,9 +477,8 @@ window.onload = function() {
     });
 
 
-    //init td_datas
 
-
+    //getRedirectResult 콜백 생성 :  로그인 페이지 결과 받는 콜백
     firebase.auth().getRedirectResult().then(function(result) {
         if (result.credential) {
             // This gives you a Google Access Token. You can use it to access the Google API.
@@ -450,10 +503,12 @@ window.onload = function() {
 }
 
 
+// 메뉴판 보기
 function showModalLeft() {
     app_vue.showModalLeft();
 }
 
+//양식 수정하기에서 항목 추가
 function addMenu() {
     let form = document.getElementById('create_form_div1');
     let form2 = document.getElementById('create_form_div2');
@@ -471,6 +526,7 @@ function addMenu() {
     form2.appendChild(template_div2)
 }
 
+//양식 수정하기에서 항목 제거
 function removeMenu() {
     let form = document.getElementById('create_form_div1');
     let form2 = document.getElementById('create_form_div2');
@@ -488,6 +544,68 @@ function removeMenu() {
 }
 
 
+// 양식 수정하기 - 열 추가하기 - 저장함수 Wrapper
+async function saveNoteFormCol() {
+    let btn = document.getElementById('edit_note_form_btn')
+    if (btn.disabled == true) {
+        return;
+    }
+    btn.disabled = true
+    await _saveNoteFormCol()
+    btn.disabled = false;
+
+}
+
+// 양식 수정하기 - 열 추가하기 - 저장 
+async function _saveNoteFormCol() {
+    let menus1 = document.getElementsByClassName('menu1')
+    let menus2 = document.getElementsByClassName('menu2')
+    let check_boxs = document.getElementsByClassName('modal_apply_check_box')
+
+    let result = {}
+    let datas = []
+    let cols = 0;
+    for (let i = 0; i < menus1.length; ++i) {
+        let vals = [removeSpace(menus1[i].value),
+            removeSpace(menus2[i].value)
+        ]
+        if (vals.includes('')) {
+            alert('빈칸이 존재합니다')
+            return
+        }
+
+        if (isNaN(parseInt(vals[1]))) {
+            alert('열갯수 항목에 문자열이 존재합니다')
+            return
+        }
+        let check_data = check_boxs[i].checked;
+        let rvals = [menus1[i].value, parseInt(menus2[i].value)]
+        let data = { 'head': rvals[0], 'col': rvals[1], 'checks' : check_data}
+        cols += rvals[1]
+        datas.push(data)
+
+    }   
+    // key is keys
+    app_vue.b_modal_show_add_col_btn = false;
+    app_vue.DATA_COUNT += cols
+    result['keys'] = [...app_vue.header_keys, ...datas]
+    result['col'] = app_vue.DATA_COUNT - 1 
+    console.log(result)
+    db.updateData(`note_form/list/${db.current_form}`, result)
+    await db.readNoteCurrents();
+
+    app_vue.ROW_COUNT = db.note_form.row
+    app_vue.DATA_COUNT = db.note_form.col + 1
+    app_vue.b_modify = false;
+    app_vue.b_prev_data_show = false;
+    app_vue.header_keys = db.note_form.keys.filter(function(el) { return el != null; })
+    app_vue.init()
+    console.log(app_vue.headers)
+
+    
+}
+
+window.saveNoteFormCol = saveNoteFormCol;
 window.showModalLeft = showModalLeft;
 window.addMenu = addMenu;
 window.removeMenu = removeMenu;

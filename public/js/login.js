@@ -1,3 +1,6 @@
+
+
+// 구글 계정 로그인함수. firebase.js 에서 실행됨. 페이지를 옮기는 방식임.
 export function login() {
     
     var user = firebase.auth().currentUser;

@@ -5,6 +5,7 @@ import { formatDate } from './date.js'
 
 window.uploadClicked = uploadClicked
 
+//업로드 함수 Wrapper
 function uploadClicked() {
     let btn = document.getElementById('upload_btn')
     if (btn.disabled == true) {
@@ -15,6 +16,14 @@ function uploadClicked() {
     btn.disabled = false;
 }
 
+/*
+업로드 함수.
+1. 항목을 모두 채웠는지 체크.
+2. login 되어있는지 체크.
+3. 쉼표가 들어가있는 항목이 있는지 체크. csv 출력시 값에 쉼표가 들어가면 오류발생의 여지가 있기때문 
+4. notes/title/uid  경로에 push 한다.
+5. 만약 지난 기록에서 수정을 한 경우라면, updateData 함수를 이용하여 notes/title/uid/prev_push_key 경로에 update한다. (덮어쓰기)
+*/
 function _uploadClicked() {
     if (check_datas_empty()) {
         return;
@@ -66,7 +75,7 @@ function _uploadClicked() {
     console.log(upload_data)
     for (let i = 0; i < 1; ++i) {
         if (app_vue.b_prev_data_show){
-            db.setData('notes/' + title + '/' + user.uid + '/' + app_vue.selected_prev_data.push_key, upload_data)
+            db.updateData('notes/' + title + '/' + user.uid + '/' + app_vue.selected_prev_data.push_key, upload_data)
         }else{
             db.pushData('notes/' + title + '/' + user.uid, upload_data)
         }
@@ -108,12 +117,14 @@ function check_datas_empty() {
     return false;
 }
 
-function removeSpace(str) {
+// 공백제거
+export function removeSpace(str) {
     let blank_pattern = /^\s+|\s+$/g;
     return str.replace(blank_pattern, '')
 }
 
-function hasSpecial(str) {
+//  . # [ ] ? 이 있는가 검사.
+export function hasSpecial(str) {
     let specials = /^.*[\.#\[\]\?\s]+.*/g;
     if (str.match(specials)) {
         return true
@@ -122,7 +133,7 @@ function hasSpecial(str) {
     }
 }
 
-function isEmpty(str) {
+export function isEmpty(str) {
     if (removeSpace(str) == '') {
         return true;
     } else {
@@ -130,6 +141,8 @@ function isEmpty(str) {
     }
 }
 
+
+// 양식 만들기 함수 Wrapper
 async function createNoteForm() {
     let btn = document.getElementById('create_note_btn')
     if (btn.disabled == true) {
@@ -139,6 +152,14 @@ async function createNoteForm() {
     await _createNoteForm()
     btn.disabled = false;
 }
+
+/*
+양식 만들기 함수
+
+firebase.js 에 있는 Database db 객체의 pushNoteForm을 이용하여 양식을 업로드한다.
+
+경로는 note_form/list/title이고, setCurrentForm을 통해 note_form/current_form/title을 수정해 현재 양식을 바꾼다.
+*/
 async function _createNoteForm() {
     let menus1 = document.getElementsByClassName('menu1')
     let menus2 = document.getElementsByClassName('menu2')

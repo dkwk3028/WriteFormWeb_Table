@@ -1,8 +1,20 @@
 import { app_vue } from './init.js'
 import { login } from './login.js'
 
-const PAGE_NUMBER = 10
-const LAST_KEY = '_not_afb_adlfkj_LAST_KEY_dfajfjaalk'
+/*
+웹에서 전반적인 Database 관련 함수들은 모두 Database class에 넣어놨습니다.
+
+init를 통해 app_vue 객체(디자인 부분) 을 초기화해주고, db에서 최신 기록을 받아오며,  코드에서 보통 업데이트 이후 등장합니다. 
+
+
+1. readNoteCurrents => 현재 최신 양식 불러오기. (current_form에 해당하는)
+2. pushNoteForm(result) => 양식 서버에 추가하기.
+3. readNoteLists() => 지난 기록 서버에서 받아오기 (현재 양식에 해당하는) 
+*/
+
+
+const PAGE_NUMBER = 10 // 지난 기록을 불러올때 한번에 받는 기록 최대크기 
+const LAST_KEY = '_not_afb_adlfkj_LAST_KEY_dfajfjaalk'  // 마지막임을 구분하기위해 임의의 문자열을 넣어봤습니다
 
 function preventHandler(e) {
     e.stopPropagation();
@@ -23,7 +35,7 @@ class Database {
     }
     async init() {
         await this.readNoteCurrents();
-        await this.getNoteData(this.current_form)
+        //await this.getNoteData(this.current_form)
         app_vue.header_keys = this.note_form.keys.filter(function(el) { return el != null; })
             //console.log(this.note_form)
             //console.log(app_vue.ROW_COUNT)
@@ -55,6 +67,14 @@ class Database {
         })
     }
 
+    updateData(root, data){
+        this.database.ref(root).update(data, function(error) {
+            if (error) {
+                alert('업데이트과정에서 문제가 발생해서 저장이 되지않았습니다')
+            }
+        })
+    }
+
     async readNoteForms() {
         const snapshot = await this.database.ref('note_form/list').once('value')
         this.temp_notes = []
@@ -79,6 +99,8 @@ class Database {
             let snapshot2 = await this.database.ref('note_form/list').orderByChild('lower').equalTo('default').once("value")
             snapshot2.forEach((child) => {
                 this.note_form = child.val()
+                if (this.current_form != 'Default')
+                    this.setCurrentForm('Default')
             })
             if (Object.keys(this.note_form).length == 0) {
                 this.pushDefaultNoteForm()
@@ -100,6 +122,7 @@ class Database {
     setCurrentForm(title = 'Default') {
         this.setData('note_form/current_form', { 'title': title })
         let el = document.getElementById('note_form_title')
+        this.current_form = title
         el.innerText = title
         console.log('setCurrentForm')
     }
@@ -228,6 +251,9 @@ class Database {
 }
 
 
+/*
+CSV 변환 객체
+*/
 class ToCSV {
     changeDataToCSV(data, note_form) {
         let columns = ['Date', 'Location', 'Writer']
@@ -241,11 +267,11 @@ class ToCSV {
             }
         }
         columns.push('Note.')
-        columns.push('UID')
+        //columns.push('UID')
         let keys = Object.keys(data)
 
         let csv_data = []
-        let avg_data = ['Avg','','',...Array(app_vue.DATA_COUNT-1).fill(0),'','']
+        let avg_data = ['Avg','','',...Array(app_vue.DATA_COUNT-1).fill(0),'']
         console.log(avg_data)
         csv_data.push(columns.join(', '))
 
@@ -260,12 +286,24 @@ class ToCSV {
                 let push_key = push_keys[push_keys.length - 1 - j]
                 let push_data = user_data[push_key]
                 total += push_data.datas.length
+
+                const push_data_col = push_data.datas[0].length
                 for (let sub_push_data of push_data.datas) {
                     
                     let row = [push_data.time, push_data.Location, push_data.Writer]
-                    csv_data.push([...row, ...sub_push_data, push_data.uid].join(', '))
+                    if (app_vue.DATA_COUNT > push_data_col){
+                        let note_col_arr = sub_push_data.splice(push_data_col-1,1)
+                        let row_data = [...sub_push_data, ...Array(app_vue.DATA_COUNT - push_data_col).fill(''),note_col_arr[0]]
+                        sub_push_data = row_data
+                        console.log(row_data)
+                    }
+                    csv_data.push([...row, ...sub_push_data].join(', '))
                 }
-                csv_data.push(['Avg','','', ...push_data.avg, '', push_data.uid].join(', '))
+                if (app_vue.DATA_COUNT > push_data_col){
+                    push_data.avg.push(...Array(app_vue.DATA_COUNT - push_data_col).fill(''))
+                    console.log(push_data.avg)
+                }
+                csv_data.push(['Avg','','', ...push_data.avg, ''].join(', '))
             }
 
         }
